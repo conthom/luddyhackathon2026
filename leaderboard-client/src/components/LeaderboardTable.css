@@ -1,0 +1,64 @@
+.lb-wrap {
+  overflow: auto;
+}
+
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.lb-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 0.65rem 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lb-table td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  vertical-align: middle;
+}
+
+.lb-table tr:last-child td {
+  border-bottom: none;
+}
+
+.lb-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.lb-table .score {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.lb-table .mono {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.rank-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border-radius: 10px;
+  background: rgba(94, 234, 212, 0.12);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.lb-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 2rem 1rem !important;
+}

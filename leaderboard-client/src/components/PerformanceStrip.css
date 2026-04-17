@@ -1,0 +1,22 @@
+.perf {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-top: 0.75rem;
+}
+
+.perf strong {
+  color: var(--accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.perf-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #4ade80;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
+}

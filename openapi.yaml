@@ -1,0 +1,193 @@
+openapi: 3.0.3
+info:
+  title: Leaderboard API
+  version: 1.0.0
+  description: REST API for dynamic leaderboard (Luddy Hacks specification).
+servers:
+  - url: http://localhost:3001
+    description: Local development
+paths:
+  /add:
+    post:
+      summary: Add an entry to the leaderboard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user, score]
+              properties:
+                user:
+                  type: string
+                score:
+                  type: number
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeaderboardEntry"
+        "400":
+          description: Bad request
+  /remove:
+    post:
+      summary: Remove leaderboard entries by id or user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                user:
+                  type: string
+      responses:
+        "200":
+          description: Removal summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  removed:
+                    type: integer
+                  remaining:
+                    type: integer
+  /leaderboard:
+    get:
+      summary: Top 10 leaderboard (JSON or HTML table)
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [html, json]
+      responses:
+        "200":
+          description: Top 10 positions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  top:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RankedEntry"
+            text/html:
+              schema:
+                type: string
+  /info:
+    get:
+      summary: Aggregate statistics for all scores
+      responses:
+        "200":
+          description: Statistics payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InfoResponse"
+  /performance:
+    get:
+      summary: Average observed endpoint execution time
+      responses:
+        "200":
+          description: Timing summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  averageExecutionTimeMs:
+                    type: number
+                  sampleCount:
+                    type: integer
+                  unit:
+                    type: string
+                    example: milliseconds
+  /history:
+    get:
+      summary: Submission log with optional filters
+      parameters:
+        - name: user
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          description: ISO date lower bound
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          description: ISO date upper bound
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Filtered history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LeaderboardEntry"
+components:
+  schemas:
+    LeaderboardEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        user:
+          type: string
+        score:
+          type: number
+        submittedAt:
+          type: string
+          format: date-time
+    RankedEntry:
+      allOf:
+        - $ref: "#/components/schemas/LeaderboardEntry"
+        - type: object
+          properties:
+            rank:
+              type: integer
+    InfoResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        mean:
+          type: number
+          nullable: true
+        median:
+          type: number
+          nullable: true
+        quartiles:
+          type: object
+          properties:
+            q1: { type: number, nullable: true }
+            q2: { type: number, nullable: true }
+            q3: { type: number, nullable: true }
+        min: { type: number, nullable: true }
+        max: { type: number, nullable: true }
+        standardDeviation: { type: number, nullable: true }
+        percentiles:
+          type: object
+        percentileRanksByUser:
+          type: object
+          additionalProperties:
+            type: number
+        scoreDistribution:
+          type: object
+          nullable: true

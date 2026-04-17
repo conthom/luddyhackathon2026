@@ -1,0 +1,39 @@
+.dist {
+  margin-top: 0.5rem;
+}
+
+.dist-axis {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  min-height: 140px;
+  padding: 0.25rem 0;
+}
+
+.dist-bin {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dist-bar {
+  width: 100%;
+  min-height: 4px;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, rgba(94, 234, 212, 0.95), rgba(99, 102, 241, 0.65));
+  align-self: stretch;
+}
+
+.dist-tick {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.dist-caption {
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
