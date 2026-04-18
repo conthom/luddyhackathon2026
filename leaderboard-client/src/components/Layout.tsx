@@ -9,7 +9,14 @@ export function Layout() {
     <div className="app-shell">
       <header className="site-header">
         <div className="brand">
-          <span className="brand-mark" aria-hidden />
+          <img
+            className="brand-mark"
+            src="/pixelsprite.png"
+            alt=""
+            width={42}
+            height={42}
+            decoding="async"
+          />
           <div>
             <div className="brand-title">Luddy Hacks</div>
             <div className="brand-sub">Dynamic leaderboard prototype</div>

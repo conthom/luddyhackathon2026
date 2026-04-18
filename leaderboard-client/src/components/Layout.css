@@ -19,7 +19,9 @@
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--accent), #6366f1);
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
   box-shadow: 0 8px 24px rgba(45, 212, 191, 0.25);
 }
 

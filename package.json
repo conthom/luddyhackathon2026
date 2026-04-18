@@ -2,15 +2,15 @@
   "name": "luddyhackathon2026",
   "private": true,
   "workspaces": [
-    "server",
-    "client"
+    "leaderboard-server",
+    "leaderboard-client"
   ],
   "scripts": {
-    "dev": "concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
-    "dev:server": "npm run dev -w server",
-    "dev:client": "npm run dev -w client",
-    "build": "npm run build -w server && npm run build -w client",
-    "start": "npm run start -w server"
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w leaderboard-server\" \"npm run dev -w leaderboard-client\"",
+    "dev:server": "npm run dev -w leaderboard-server",
+    "dev:client": "npm run dev -w leaderboard-client",
+    "build": "npm run build -w leaderboard-server && npm run build -w leaderboard-client",
+    "start": "npm run start -w leaderboard-server"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

@@ -1,21 +1,31 @@
+# Build API + static client (Vite)
 FROM node:22-alpine AS build
 WORKDIR /app
-COPY package.json package-lock.json* ./
-COPY server/package.json server/
-COPY client/package.json client/
-RUN npm install --workspaces --include-workspace-root
-COPY server server
-COPY client client
-RUN npm run build -w server && npm run build -w client
 
-FROM node:22-alpine
-WORKDIR /app
-ENV NODE_ENV=production
 COPY package.json package-lock.json* ./
-COPY server/package.json server/
-RUN npm install --workspace server --omit=dev
-COPY --from=build /app/server/dist ./server/dist
-COPY --from=build /app/client/dist ./client/dist
+COPY leaderboard-server/package.json leaderboard-server/
+COPY leaderboard-client/package.json leaderboard-client/
+
+RUN npm install --workspaces --include-workspace-root
+
+COPY leaderboard-server leaderboard-server
+COPY leaderboard-client leaderboard-client
+
+RUN npm run build -w leaderboard-server && npm run build -w leaderboard-client
+
+# Production: Node serves REST API + prebuilt SPA (see CLIENT_DIST in server)
+FROM node:22-alpine
+WORKDIR /app/leaderboard-server
+
+ENV NODE_ENV=production
+COPY leaderboard-server/package.json ./
+RUN npm install --omit=dev
+
+COPY --from=build /app/leaderboard-server/dist ./dist
+COPY --from=build /app/leaderboard-client/dist /app/leaderboard-client/dist
+
 ENV PORT=3001
+ENV CLIENT_DIST=/app/leaderboard-client/dist
 EXPOSE 3001
-CMD ["node", "server/dist/index.js"]
+
+CMD ["node", "dist/index.js"]
