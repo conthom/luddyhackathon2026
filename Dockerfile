@@ -26,6 +26,10 @@ COPY --from=build /app/leaderboard-client/dist /app/leaderboard-client/dist
 
 ENV PORT=3001
 ENV CLIENT_DIST=/app/leaderboard-client/dist
+# Persistent leaderboard (mount a volume at /data on the host)
+RUN mkdir -p /data
+ENV SQLITE_PATH=/data/leaderboard.db
+VOLUME ["/data"]
 EXPOSE 3001
 
 CMD ["node", "dist/index.js"]

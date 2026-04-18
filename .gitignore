@@ -1,1 +1,3 @@
 node_modules
+leaderboard-server/data/
+*.db

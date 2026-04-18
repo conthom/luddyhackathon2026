@@ -3,6 +3,16 @@ import { fileURLToPath } from "node:url";
 import cors from "cors";
 import express from "express";
 import {
+  countActiveEntries,
+  deleteEntriesByUser,
+  deleteEntryById,
+  getDbPathForLog,
+  getLeaderboardTop,
+  insertEntry,
+  loadActiveEntries,
+  loadHistoryFiltered,
+} from "./db.js";
+import {
   histogram,
   mean,
   median,
@@ -11,16 +21,9 @@ import {
   sortedNumbers,
   standardDeviation,
 } from "./stats.js";
+import type { LeaderboardEntry } from "./types.js";
 
-export type LeaderboardEntry = {
-  id: string;
-  user: string;
-  score: number;
-  submittedAt: string;
-};
-
-const entries: LeaderboardEntry[] = [];
-const history: LeaderboardEntry[] = [];
+export type { LeaderboardEntry } from "./types.js";
 
 const timingMs: number[] = [];
 const MAX_TIMING_SAMPLES = 5000;
@@ -45,6 +48,7 @@ app.use((req, res, next) => {
 });
 
 function buildInfo() {
+  const entries = loadActiveEntries();
   const scores = entries.map((e) => e.score);
   const sorted = sortedNumbers(scores);
   const m = mean(scores);
@@ -98,8 +102,7 @@ app.post("/add", (req, res) => {
     score,
     submittedAt: new Date().toISOString(),
   };
-  entries.push(entry);
-  history.push(entry);
+  insertEntry(entry);
   res.status(201).json(entry);
 });
 
@@ -112,29 +115,16 @@ app.post("/remove", (req, res) => {
   }
   let removed = 0;
   if (id) {
-    for (let i = entries.length - 1; i >= 0; i--) {
-      if (entries[i]!.id === id) {
-        entries.splice(i, 1);
-        removed++;
-        break;
-      }
-    }
+    removed = deleteEntryById(id);
   } else {
-    for (let i = entries.length - 1; i >= 0; i--) {
-      if (entries[i]!.user === user) {
-        entries.splice(i, 1);
-        removed++;
-      }
-    }
+    removed = deleteEntriesByUser(user);
   }
-  res.json({ removed, remaining: entries.length });
+  res.json({ removed, remaining: countActiveEntries() });
 });
 
 app.get("/leaderboard", (req, res) => {
-  const top = [...entries]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10)
-    .map((e, i) => ({ rank: i + 1, ...e }));
+  const topRows = getLeaderboardTop(10);
+  const top = topRows.map((e, i) => ({ rank: i + 1, ...e }));
 
   const asHtml = req.query.format === "html";
 
@@ -184,17 +174,11 @@ app.get("/history", (req, res) => {
   const to = req.query.to ? new Date(String(req.query.to)) : null;
   const user = typeof req.query.user === "string" ? req.query.user.trim() : "";
 
-  let list = [...history];
-  if (user) {
-    list = list.filter((h) => h.user === user);
-  }
-  if (from && !Number.isNaN(from.getTime())) {
-    list = list.filter((h) => new Date(h.submittedAt) >= from);
-  }
-  if (to && !Number.isNaN(to.getTime())) {
-    list = list.filter((h) => new Date(h.submittedAt) <= to);
-  }
-  list.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  const list = loadHistoryFiltered({
+    user: user || undefined,
+    from,
+    to,
+  });
   res.json({ entries: list });
 });
 
@@ -215,11 +199,12 @@ if (clientDist) {
 const PORT = Number(process.env.PORT) || 3001;
 const server = app.listen(PORT, () => {
   console.log(`Leaderboard API listening on http://localhost:${PORT}`);
+  console.log(`SQLite database: ${getDbPathForLog()}`);
 });
 server.on("error", (err: NodeJS.ErrnoException) => {
   if (err.code === "EADDRINUSE") {
     console.error(
-      `Port ${PORT} is already in use. Stop the other server on this port or run with a different PORT (e.g. PORT=3002).`
+      `Port ${PORT} is already in use. Stop the other server on this port or run with a different PORT (e.g. PORT=3002).`,
     );
   } else {
     console.error(err);
