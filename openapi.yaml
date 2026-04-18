@@ -81,6 +81,71 @@ paths:
             text/html:
               schema:
                 type: string
+  /race/state:
+    get:
+      summary: Current race timeline and heat (persisted)
+      responses:
+        "200":
+          description: Elapsed race time and active heat
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [elapsedMs, heat]
+                properties:
+                  elapsedMs:
+                    type: number
+                    description: Milliseconds from race start (0 … 2h15m)
+                  heat:
+                    type: string
+                    enum: [men, women, all]
+    post:
+      summary: Update race time and heat; refreshes Little 500 miles on the leaderboard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [elapsedMs, heat]
+              properties:
+                elapsedMs:
+                  type: number
+                heat:
+                  type: string
+                  enum: [men, women, all]
+      responses:
+        "200":
+          description: Saved state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elapsedMs:
+                    type: number
+                  heat:
+                    type: string
+        "400":
+          description: Bad request
+  /race/reset:
+    post:
+      summary: Reload workbook, flag clock, replace entire active leaderboard with sheet snapshot (drops guest rows)
+      responses:
+        "200":
+          description: New race state after reset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elapsedMs:
+                    type: number
+                  heat:
+                    type: string
+                    enum: [men, women, all]
+        "503":
+          description: Workbook missing or unreadable
   /info:
     get:
       summary: Aggregate statistics for all scores

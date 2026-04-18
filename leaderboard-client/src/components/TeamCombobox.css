@@ -1,0 +1,50 @@
+.team-combo {
+  position: relative;
+  width: 100%;
+}
+
+.team-combo-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 40;
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--surface2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.team-combo-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.45rem 0.65rem;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.team-combo-item:hover,
+.team-combo-item.highlighted {
+  background: rgba(94, 234, 212, 0.12);
+}
+
+.team-combo-empty {
+  padding: 0.5rem 0.65rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.team-combo-hint {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}

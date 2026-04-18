@@ -14,6 +14,7 @@ export default defineConfig({
       "/info": api,
       "/performance": api,
       "/history": api,
+      "/race": api,
     },
   },
 });

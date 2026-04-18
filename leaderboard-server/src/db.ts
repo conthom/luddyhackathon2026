@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
+import { clampRaceTime } from "./raceConstants.js";
+import type { RaceHeat } from "./little500Types.js";
 import type { LeaderboardEntry } from "./types.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -40,6 +42,15 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_submission_log_submitted ON submission_log(submitted_at DESC);
   CREATE INDEX IF NOT EXISTS idx_submission_log_user ON submission_log(user);
+
+  CREATE TABLE IF NOT EXISTS race_state (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    elapsed_ms REAL NOT NULL DEFAULT 0,
+    heat TEXT NOT NULL DEFAULT 'men',
+    updated_at TEXT NOT NULL
+  );
+  INSERT OR IGNORE INTO race_state (id, elapsed_ms, heat, updated_at)
+  VALUES (1, 0, 'men', datetime('now'));
 `);
 
 function rowToEntry(r: { id: string; user: string; score: number; submitted_at: string }): LeaderboardEntry {
@@ -133,4 +144,68 @@ export function loadHistoryFiltered(options: {
 
 export function getDbPathForLog(): string {
   return dbPath;
+}
+
+export function getRaceState(): { elapsedMs: number; heat: RaceHeat } {
+  const row = db
+    .prepare(`SELECT elapsed_ms, heat FROM race_state WHERE id = 1`)
+    .get() as { elapsed_ms: number; heat: string } | undefined;
+  if (!row) {
+    return { elapsedMs: 0, heat: "men" };
+  }
+  const h = row.heat === "women" || row.heat === "all" ? row.heat : "men";
+  return { elapsedMs: clampRaceTime(row.elapsed_ms), heat: h };
+}
+
+export function setRaceState(elapsedMs: number, heat: RaceHeat): void {
+  const clamped = clampRaceTime(elapsedMs);
+  db.prepare(
+    `UPDATE race_state SET elapsed_ms = @elapsed_ms, heat = @heat, updated_at = @updated_at WHERE id = 1`,
+  ).run({
+    elapsed_ms: clamped,
+    heat,
+    updated_at: new Date().toISOString(),
+  });
+}
+
+const deleteLittle500Active = db.prepare(`DELETE FROM leaderboard_entries WHERE user LIKE 'little500:%'`);
+const insertActiveOnly = db.prepare(
+  `INSERT INTO leaderboard_entries (id, user, score, submitted_at) VALUES (@id, @user, @score, @submitted_at)`,
+);
+
+/** Replace synthetic Little 500 rows (does not touch submission_log). */
+export function replaceLittle500Entries(entries: LeaderboardEntry[]): void {
+  const tx = db.transaction(() => {
+    deleteLittle500Active.run();
+    for (const e of entries) {
+      insertActiveOnly.run({
+        id: e.id,
+        user: e.user,
+        score: e.score,
+        submitted_at: e.submittedAt,
+      });
+    }
+  });
+  tx();
+}
+
+const deleteAllActive = db.prepare(`DELETE FROM leaderboard_entries`);
+
+/**
+ * Clear the entire active leaderboard, then insert only the given rows.
+ * Used by POST /race/reset so test/guest rows are removed (does not touch submission_log).
+ */
+export function replaceEntireActiveLeaderboard(entries: LeaderboardEntry[]): void {
+  const tx = db.transaction(() => {
+    deleteAllActive.run();
+    for (const e of entries) {
+      insertActiveOnly.run({
+        id: e.id,
+        user: e.user,
+        score: e.score,
+        submitted_at: e.submittedAt,
+      });
+    }
+  });
+  tx();
 }

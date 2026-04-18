@@ -9,6 +9,16 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.brand-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-link:hover .brand-title {
+  color: var(--accent);
+}
+
 .brand {
   display: flex;
   align-items: center;

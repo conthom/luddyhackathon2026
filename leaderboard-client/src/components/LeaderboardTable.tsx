@@ -1,4 +1,5 @@
 import { LayoutGroup, motion } from "framer-motion";
+import { displayTeamUser } from "../lib/displayTeamUser";
 import type { RankedEntry } from "../types";
 import "./LeaderboardTable.css";
 
@@ -11,15 +12,15 @@ const spring = { type: "spring" as const, stiffness: 420, damping: 36, mass: 0.8
 
 export function LeaderboardTable({
   rows,
-  emptyMessage = "No entries yet — add skills from Admin to build your growth board.",
+  emptyMessage = "No entries yet — use the race page or Admin to add miles.",
 }: Props) {
   return (
     <div className="lb-wrap">
       <div className="lb-grid lb-head" role="row">
         <div role="columnheader">Rank</div>
-        <div role="columnheader">Focus</div>
+        <div role="columnheader">Team</div>
         <div role="columnheader" className="num">
-          Points
+          Miles
         </div>
         <div role="columnheader">Updated</div>
       </div>
@@ -45,12 +46,12 @@ export function LeaderboardTable({
                 </div>
                 <div className="lb-cell lb-focus" role="cell">
                   <motion.span layout="position" transition={spring}>
-                    {r.user}
+                    {displayTeamUser(r.user)}
                   </motion.span>
                 </div>
                 <div className="lb-cell num score" role="cell">
                   <motion.span layout="position" transition={spring}>
-                    {r.score}
+                    {typeof r.score === "number" ? r.score.toFixed(2) : r.score}
                   </motion.span>
                 </div>
                 <div className="lb-cell mono" role="cell">

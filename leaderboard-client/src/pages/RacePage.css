@@ -1,0 +1,142 @@
+.race-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.race-heat-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.race-seg {
+  display: inline-flex;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.race-seg .seg {
+  border: none;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.race-seg .seg:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.race-seg .seg.active {
+  background: rgba(94, 234, 212, 0.18);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.race-clock-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.race-clock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 0.75rem;
+}
+
+.race-clock-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.race-clock-value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+.race-clock-of {
+  font-size: 0.95rem;
+}
+
+.race-slider-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.race-slider {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.race-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.race-track-inner {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  transition: width 0.08s linear;
+}
+
+.race-heat-caption {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.race-top-card .race-top-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.race-row {
+  display: grid;
+  grid-template-columns: 2rem 52px 1fr;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.race-rank {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  text-align: right;
+}
+
+.race-bike {
+  justify-self: center;
+}
+
+.race-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.race-sub {
+  font-size: 0.78rem;
+  margin-top: 0.15rem;
+}

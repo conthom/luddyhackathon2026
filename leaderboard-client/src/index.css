@@ -27,12 +27,12 @@ body {
 
 /* Exclude nav: global accent + underline must not apply to `.nav-link` or active
    state loses to load-order when Layout.css and this file split across chunks. */
-a:not(.nav-link) {
+a:not(.nav-link):not(.brand-link) {
   color: var(--accent);
   text-decoration: none;
 }
 
-a:not(.nav-link):hover {
+a:not(.nav-link):not(.brand-link):hover {
   text-decoration: underline;
 }
 

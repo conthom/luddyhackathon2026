@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { fetchInfo, fetchPerformance } from "../api";
+import { displayTeamUser } from "../lib/displayTeamUser";
+import { MILES_MEN, MILES_WOMEN } from "../lib/raceConstants";
 import { DistributionChart } from "../components/DistributionChart";
 import { PerformanceStrip } from "../components/PerformanceStrip";
 import { StatsGrid } from "../components/StatsGrid";
@@ -34,8 +36,9 @@ export function StatsPage() {
     <>
       <h1 className="page-title">Aggregate statistics</h1>
       <p className="page-sub">
-        Mean, median, quartiles, spread, percentile bands, score distribution, and how each focus area compares to the
-        field (best score vs everyone else).
+        Miles across all leaderboard rows (Little 500 sync uses men&apos;s {MILES_MEN} mi and women&apos;s{" "}
+        {MILES_WOMEN} mi race lengths). Mean, median, quartiles, spread, percentile bands, distribution, and each team
+        vs the field.
       </p>
 
       {error ? <p className="error">{error}</p> : null}
@@ -52,18 +55,18 @@ export function StatsPage() {
       </section>
 
       <section className="card">
-        <h2 className="card-heading">Score distribution</h2>
+        <h2 className="card-heading">Miles distribution</h2>
         <DistributionChart info={info} />
       </section>
 
       {ranks.length > 0 ? (
         <section className="card">
-          <h2 className="card-heading">Percentile rank by focus</h2>
-          <p className="muted">Share of scores strictly below this user&apos;s best score.</p>
+          <h2 className="card-heading">Percentile rank by team</h2>
+          <p className="muted">Share of mile values strictly below this row&apos;s best score.</p>
           <div className="rank-grid">
             {ranks.map(([user, pr]) => (
               <div key={user} className="rank-row">
-                <span>{user}</span>
+                <span>{displayTeamUser(user)}</span>
                 <span className="mono">{(pr * 100).toFixed(1)}%</span>
               </div>
             ))}

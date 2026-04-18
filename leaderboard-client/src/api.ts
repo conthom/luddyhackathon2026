@@ -1,4 +1,10 @@
-import type { HistoryResponse, InfoResponse, LeaderboardResponse, PerformanceResponse } from "./types";
+import type {
+  HistoryResponse,
+  InfoResponse,
+  LeaderboardResponse,
+  PerformanceResponse,
+  RaceStateResponse,
+} from "./types";
 
 /** Empty in dev (Vite proxy / same origin). Set in Vercel to your Render API origin, e.g. https://your-api.onrender.com */
 function apiUrl(path: string): string {
@@ -62,6 +68,26 @@ export async function removeEntry(body: { id?: string; user?: string }) {
     body: JSON.stringify(body),
   });
   return parseJson<{ removed: number; remaining: number }>(res);
+}
+
+export async function fetchRaceState(): Promise<RaceStateResponse> {
+  const res = await request("/race/state");
+  return parseJson(res);
+}
+
+export async function postRaceState(body: RaceStateResponse): Promise<RaceStateResponse> {
+  const res = await request("/race/state", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return parseJson(res);
+}
+
+/** Reload xlsx on server, set race to flag time, resync all Little 500 rows from the spreadsheet. */
+export async function postRaceReset(): Promise<RaceStateResponse> {
+  const res = await request("/race/reset", { method: "POST" });
+  return parseJson(res);
 }
 
 export async function fetchHistory(params: { user?: string; from?: string; to?: string }) {

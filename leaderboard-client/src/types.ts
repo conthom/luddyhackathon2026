@@ -41,3 +41,8 @@ export type HistoryResponse = {
     submittedAt: string;
   }[];
 };
+
+export type RaceStateResponse = {
+  elapsedMs: number;
+  heat: "men" | "women" | "all";
+};

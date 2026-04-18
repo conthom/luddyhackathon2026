@@ -1,0 +1,10 @@
+.remove-team-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.remove-team-actions {
+  display: flex;
+  justify-content: flex-end;
+}

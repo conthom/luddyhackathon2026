@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { fetchHistory, fetchPerformance } from "../api";
+import { displayTeamUser, parseTeamNameToDbUser } from "../lib/displayTeamUser";
 import { PerformanceStrip } from "../components/PerformanceStrip";
 import type { HistoryResponse, PerformanceResponse } from "../types";
 import "./Pages.css";
@@ -17,7 +18,7 @@ export function HistoryPage() {
     try {
       const [h, p] = await Promise.all([
         fetchHistory({
-          user: user.trim() || undefined,
+          user: user.trim() ? parseTeamNameToDbUser(user.trim()) : undefined,
           from: from.trim() || undefined,
           to: to.trim() || undefined,
         }),
@@ -43,7 +44,7 @@ export function HistoryPage() {
     <>
       <h1 className="page-title">Activity log</h1>
       <p className="page-sub">
-        Filter by focus name and optional date range (use ISO timestamps for from / to).
+        Filter by team name and optional date range (use ISO timestamps for from / to).
       </p>
 
       {error ? <p className="error">{error}</p> : null}
@@ -51,7 +52,7 @@ export function HistoryPage() {
       <section className="card">
         <form className="filter-form" onSubmit={applyFilters}>
           <label className="field">
-            <span>Focus contains</span>
+            <span>Team contains</span>
             <input value={user} onChange={(e) => setUser(e.target.value)} placeholder="optional" />
           </label>
           <label className="field">
@@ -78,8 +79,8 @@ export function HistoryPage() {
             <thead>
               <tr>
                 <th>When</th>
-                <th>Focus</th>
-                <th className="num">Points</th>
+                <th>Team</th>
+                <th className="num">Miles</th>
                 <th className="mono">Id</th>
               </tr>
             </thead>
@@ -87,8 +88,8 @@ export function HistoryPage() {
               {(data?.entries ?? []).map((e) => (
                 <tr key={e.id}>
                   <td className="mono">{new Date(e.submittedAt).toLocaleString()}</td>
-                  <td>{e.user}</td>
-                  <td className="num">{e.score}</td>
+                  <td>{displayTeamUser(e.user)}</td>
+                  <td className="num">{typeof e.score === "number" ? e.score.toFixed(2) : e.score}</td>
                   <td className="mono small">{e.id}</td>
                 </tr>
               ))}
