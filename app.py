@@ -13,40 +13,69 @@ CORS(app)
 
 def get_conn():
     conn = sqlite3.connect("leaderboard.db")
-    conn.row
+    conn.row_factory = sqlite3.Row
+    return conn
 
+def init_db():
+    conn = get_conn()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS leaderboard (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            score REAL NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
 
 @app.post("/add")
 def add():
     if Request.is_json==True: 
         data = Request.get_json()
         if not data or "name" not in data or "score" not in data: return {"error": "Bad request"}, 400
-        else: 
-            leaderboard.append({"name": data["name"], "score": data["score"]})
-            return {"success": "entry added"}, 201
+         
+        conn = get_conn()
+        conn.execute("INSERT INTO leaderboard (name, score) VALUES (?, ?)",
+                     (data["name"], data["score"]))
+        conn.commit()
+        conn.close()
+        return {"success": "entry added"}, 201
     else: return {"error": "Bad request"}, 400
 
 @app.get("/leaderboard")
 def get_leaderboard():
-    sorted_board = sorted(leaderboard, key=lambda x: x["score"], reverse=True)
-    return jsonify(sorted_board[:10])
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT name, score FROM leaderboard ORDER BY score DESC LIMIT 10"
+    ).fetchall()
+    conn.close()
+    return jsonify([dict(row) for row in rows])
+
+    
 
 @app.delete("/remove")
 def deleteEntry():
     rq = Request.get_json()
     if not rq or "name" not in rq: return {"error": "bad request"}, 400
     else: 
-        entry = next((e for e in leaderboard if e["name"] == rq["name"]), None)
-        if not entry:
-            return {"error": "entry not found"}, 404
-        leaderboard.remove(entry)
+        conn = get_conn()
+        conn.execute("DELETE FROM leaderboard WHERE name = ?", (rq["name"]))
+        conn.commit()
+        conn.close()
         return {"success": "entry removed"}, 201
     
 @app.get("/info")
 def info():
     if not leaderboard:
         return {"error": "no entries yet"}, 400
-    scores = [i["score"] for i in leaderboard]
+    conn = get_conn()
+    scores = conn.execute("SELECT score FROM leaderboard").fetchall()
+    conn.commit()
+    conn.close()
+    if not scores:
+        return {"error": "no entries yet"}, 400
     meanValue = stats.mean(scores)
     median = stats.median(scores)
     q4, q3, q2, q1 = np.quantile(scores, [1, 0.75, .5, 0.25])
