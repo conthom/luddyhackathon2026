@@ -18,19 +18,22 @@ export function Layout() {
             decoding="async"
           />
           <div>
-            <div className="brand-title">Luddy Hacks</div>
-            <div className="brand-sub">Dynamic leaderboard prototype</div>
+            <div className="brand-title">Growth ranker</div>
+            <div className="brand-sub">Career skills & focus tracker</div>
           </div>
         </div>
         <nav className="nav" aria-label="Primary">
           <NavLink to="/" end className={linkClass}>
-            Dashboard
+            Leaderboard
           </NavLink>
           <NavLink to="/stats" className={linkClass}>
             Statistics
           </NavLink>
           <NavLink to="/log" className={linkClass}>
-            Submission log
+            Activity log
+          </NavLink>
+          <NavLink to="/admin" className={linkClass}>
+            Admin
           </NavLink>
         </nav>
       </header>

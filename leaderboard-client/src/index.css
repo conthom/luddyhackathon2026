@@ -25,12 +25,14 @@ body {
   color: var(--text);
 }
 
-a {
+/* Exclude nav: global accent + underline must not apply to `.nav-link` or active
+   state loses to load-order when Layout.css and this file split across chunks. */
+a:not(.nav-link) {
   color: var(--accent);
   text-decoration: none;
 }
 
-a:hover {
+a:not(.nav-link):hover {
   text-decoration: underline;
 }
 

@@ -34,8 +34,8 @@ export function StatsPage() {
     <>
       <h1 className="page-title">Aggregate statistics</h1>
       <p className="page-sub">
-        GET /info — mean, median, quartiles, standard deviation, percentile bands, histogram, and percentile ranks
-        by user (best score vs field).
+        Mean, median, quartiles, spread, percentile bands, score distribution, and how each focus area compares to the
+        field (best score vs everyone else).
       </p>
 
       {error ? <p className="error">{error}</p> : null}
@@ -58,7 +58,7 @@ export function StatsPage() {
 
       {ranks.length > 0 ? (
         <section className="card">
-          <h2 className="card-heading">Percentile rank by user</h2>
+          <h2 className="card-heading">Percentile rank by focus</h2>
           <p className="muted">Share of scores strictly below this user&apos;s best score.</p>
           <div className="rank-grid">
             {ranks.map(([user, pr]) => (

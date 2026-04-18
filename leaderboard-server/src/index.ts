@@ -213,6 +213,16 @@ if (clientDist) {
 }
 
 const PORT = Number(process.env.PORT) || 3001;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Leaderboard API listening on http://localhost:${PORT}`);
+});
+server.on("error", (err: NodeJS.ErrnoException) => {
+  if (err.code === "EADDRINUSE") {
+    console.error(
+      `Port ${PORT} is already in use. Stop the other server on this port or run with a different PORT (e.g. PORT=3002).`
+    );
+  } else {
+    console.error(err);
+  }
+  process.exit(1);
 });

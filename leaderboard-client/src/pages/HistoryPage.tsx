@@ -41,15 +41,17 @@ export function HistoryPage() {
 
   return (
     <>
-      <h1 className="page-title">Submission history</h1>
-      <p className="page-sub">GET /history — optional query params <code>user</code>, <code>from</code>, <code>to</code> (ISO timestamps).</p>
+      <h1 className="page-title">Activity log</h1>
+      <p className="page-sub">
+        Filter by focus name and optional date range (use ISO timestamps for from / to).
+      </p>
 
       {error ? <p className="error">{error}</p> : null}
 
       <section className="card">
         <form className="filter-form" onSubmit={applyFilters}>
           <label className="field">
-            <span>User contains</span>
+            <span>Focus contains</span>
             <input value={user} onChange={(e) => setUser(e.target.value)} placeholder="optional" />
           </label>
           <label className="field">
@@ -76,8 +78,8 @@ export function HistoryPage() {
             <thead>
               <tr>
                 <th>When</th>
-                <th>User</th>
-                <th className="num">Score</th>
+                <th>Focus</th>
+                <th className="num">Points</th>
                 <th className="mono">Id</th>
               </tr>
             </thead>

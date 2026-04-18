@@ -22,7 +22,7 @@
   object-fit: cover;
   display: block;
   flex-shrink: 0;
-  box-shadow: 0 8px 24px rgba(45, 212, 191, 0.25);
+  box-shadow: 0 8px 24px rgba(35, 167, 149, 0.25);
 }
 
 .brand-title {
@@ -58,12 +58,13 @@
 }
 
 .nav-link-active {
-  color: var(--bg);
-  background: var(--accent);
+  color: #041016;
+  background: var(--accent-dim);
   border-color: rgba(255, 255, 255, 0.12);
 }
 
 .nav-link-active:hover {
-  color: var(--bg);
+  color: #041016;
   background: var(--accent-dim);
+  text-decoration: none;
 }

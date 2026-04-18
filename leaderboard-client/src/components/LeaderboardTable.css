@@ -2,14 +2,14 @@
   overflow: auto;
 }
 
-.lb-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
+.lb-grid {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, 5.5rem) minmax(6rem, 1fr) minmax(5rem, 7rem) minmax(9rem, 12rem);
+  align-items: center;
+  column-gap: 0.75rem;
 }
 
-.lb-table th {
-  text-align: left;
+.lb-head {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -18,27 +18,49 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.lb-table td {
+.lb-head [role="columnheader"] {
+  font-weight: 600;
+}
+
+.lb-rows {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.lb-row {
   padding: 0.75rem 0.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   vertical-align: middle;
+  border-radius: 10px;
+  margin: 0 -0.25rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
-.lb-table tr:last-child td {
+.lb-row:last-child {
   border-bottom: none;
 }
 
-.lb-table .num {
+.lb-cell {
+  min-width: 0;
+}
+
+.lb-focus {
+  font-weight: 600;
+}
+
+.lb-grid .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-.lb-table .score {
+.lb-grid .score {
   font-weight: 700;
   color: var(--accent);
 }
 
-.lb-table .mono {
+.lb-grid .mono {
   font-size: 0.85rem;
   color: var(--muted);
 }
@@ -57,8 +79,13 @@
   font-size: 0.9rem;
 }
 
-.lb-empty {
+.lb-empty-row {
+  padding: 2rem 0.5rem;
+}
+
+.lb-empty-msg {
+  grid-column: 1 / -1;
+  margin: 0;
   text-align: center;
   color: var(--muted);
-  padding: 2rem 1rem !important;
 }

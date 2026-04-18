@@ -34,18 +34,18 @@ export function AddScoreForm({ onSubmit, disabled }: Props) {
   return (
     <form className="form-grid" onSubmit={handleSubmit}>
       <label className="field">
-        <span>User</span>
+        <span>Focus area</span>
         <input
           name="user"
-          autoComplete="nickname"
+          autoComplete="off"
           value={user}
           onChange={(e) => setUser(e.target.value)}
-          placeholder="Team or player name"
+          placeholder="e.g. System design, Python, public speaking"
           disabled={disabled || pending}
         />
       </label>
       <label className="field">
-        <span>Score</span>
+        <span>Points</span>
         <input
           name="score"
           inputMode="decimal"
@@ -57,7 +57,7 @@ export function AddScoreForm({ onSubmit, disabled }: Props) {
       </label>
       <div className="form-actions">
         <button type="submit" className="btn primary" disabled={disabled || pending}>
-          {pending ? "Submitting…" : "Add score"}
+          {pending ? "Saving…" : "Add entry"}
         </button>
       </div>
       {error ? <p className="error">{error}</p> : null}

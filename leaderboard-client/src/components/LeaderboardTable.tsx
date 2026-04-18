@@ -1,3 +1,4 @@
+import { LayoutGroup, motion } from "framer-motion";
 import type { RankedEntry } from "../types";
 import "./LeaderboardTable.css";
 
@@ -6,41 +7,62 @@ type Props = {
   emptyMessage?: string;
 };
 
-export function LeaderboardTable({ rows, emptyMessage = "No scores yet — add an entry to populate the board." }: Props) {
+const spring = { type: "spring" as const, stiffness: 420, damping: 36, mass: 0.85 };
+
+export function LeaderboardTable({
+  rows,
+  emptyMessage = "No entries yet — add skills from Admin to build your growth board.",
+}: Props) {
   return (
     <div className="lb-wrap">
-      <table className="lb-table">
-        <thead>
-          <tr>
-            <th scope="col">Rank</th>
-            <th scope="col">User</th>
-            <th scope="col" className="num">
-              Score
-            </th>
-            <th scope="col">Submitted</th>
-          </tr>
-        </thead>
-        <tbody>
+      <div className="lb-grid lb-head" role="row">
+        <div role="columnheader">Rank</div>
+        <div role="columnheader">Focus</div>
+        <div role="columnheader" className="num">
+          Points
+        </div>
+        <div role="columnheader">Updated</div>
+      </div>
+      <LayoutGroup id="leaderboard">
+        <div className="lb-rows" role="rowgroup">
           {rows.length === 0 ? (
-            <tr>
-              <td colSpan={4} className="lb-empty">
-                {emptyMessage}
-              </td>
-            </tr>
+            <div className="lb-grid lb-empty-row" role="row">
+              <p className="lb-empty-msg">{emptyMessage}</p>
+            </div>
           ) : (
             rows.map((r) => (
-              <tr key={r.id}>
-                <td>
-                  <span className="rank-pill">{r.rank}</span>
-                </td>
-                <td>{r.user}</td>
-                <td className="num score">{r.score}</td>
-                <td className="mono">{new Date(r.submittedAt).toLocaleString()}</td>
-              </tr>
+              <motion.div
+                key={r.id}
+                className="lb-grid lb-row"
+                layout
+                role="row"
+                transition={spring}
+              >
+                <div className="lb-cell" role="cell">
+                  <motion.span layout="position" className="rank-pill" transition={spring}>
+                    {r.rank}
+                  </motion.span>
+                </div>
+                <div className="lb-cell lb-focus" role="cell">
+                  <motion.span layout="position" transition={spring}>
+                    {r.user}
+                  </motion.span>
+                </div>
+                <div className="lb-cell num score" role="cell">
+                  <motion.span layout="position" transition={spring}>
+                    {r.score}
+                  </motion.span>
+                </div>
+                <div className="lb-cell mono" role="cell">
+                  <motion.span layout="position" transition={spring}>
+                    {new Date(r.submittedAt).toLocaleString()}
+                  </motion.span>
+                </div>
+              </motion.div>
             ))
           )}
-        </tbody>
-      </table>
+        </div>
+      </LayoutGroup>
     </div>
   );
 }

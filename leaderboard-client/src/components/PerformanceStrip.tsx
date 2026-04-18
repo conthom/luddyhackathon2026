@@ -11,7 +11,7 @@ export function PerformanceStrip({ perf }: Props) {
     <div className="perf" role="status">
       <span className="perf-dot" aria-hidden />
       <span>
-        Avg. endpoint time: <strong>{perf.averageExecutionTimeMs.toFixed(3)}</strong> {perf.unit} (
+        Avg. response time: <strong>{perf.averageExecutionTimeMs.toFixed(3)}</strong> {perf.unit} (
         {perf.sampleCount} samples)
       </span>
     </div>

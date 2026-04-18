@@ -17,7 +17,7 @@ export function RemoveEntryForm({ onRemoveById, onRemoveByUser, disabled }: Prop
     e.preventDefault();
     setError(null);
     if (!id.trim()) {
-      setError("Paste an entry id.");
+      setError("Paste a row id.");
       return;
     }
     setPending(true);
@@ -35,7 +35,7 @@ export function RemoveEntryForm({ onRemoveById, onRemoveByUser, disabled }: Prop
     e.preventDefault();
     setError(null);
     if (!user.trim()) {
-      setError("Enter a user name to remove all of their rows.");
+      setError("Enter a focus name to remove all rows for that focus.");
       return;
     }
     setPending(true);
@@ -53,11 +53,11 @@ export function RemoveEntryForm({ onRemoveById, onRemoveByUser, disabled }: Prop
     <div className="remove-stack">
       <form className="form-inline" onSubmit={byId}>
         <label className="field grow">
-          <span>Remove by id</span>
+          <span>Remove by row id</span>
           <input
             value={id}
             onChange={(e) => setId(e.target.value)}
-            placeholder="uuid from API / table"
+            placeholder="Paste id from the leaderboard or log"
             disabled={disabled || pending}
           />
         </label>
@@ -67,11 +67,11 @@ export function RemoveEntryForm({ onRemoveById, onRemoveByUser, disabled }: Prop
       </form>
       <form className="form-inline" onSubmit={byUser}>
         <label className="field grow">
-          <span>Remove all for user</span>
+          <span>Remove all for focus</span>
           <input
             value={user}
             onChange={(e) => setUser(e.target.value)}
-            placeholder="exact user name"
+            placeholder="Exact focus area name"
             disabled={disabled || pending}
           />
         </label>
