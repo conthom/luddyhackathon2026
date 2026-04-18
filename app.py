@@ -179,7 +179,7 @@ def predict():
         predictions[0]["predicted_winner"] = True
     return jsonify(predictions)
 
-socketIO.run(app, debug=True)
+socketIO.run(app)
 
 
    
