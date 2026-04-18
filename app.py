@@ -11,7 +11,7 @@ from flask_socketio import SocketIO
 
 app = Flask(__name__)
 CORS(app)
-socketIO = SocketIO(app, cors_allowed_origin="*") # Might want to update allowed CORS origins list to enhance security
+socketIO = SocketIO(app, cors_allowed_origins="*") # Might want to update allowed CORS origins list to enhance security
 
 def get_conn():
     conn = sqlite3.connect("leaderboard.db")
@@ -24,7 +24,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS leaderboard (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
-            score REAL NOT NULL
+            score REAL NOT NULL,
+            time FLOAT NOT NULL
         )
     """)
     conn.commit()
@@ -35,7 +36,7 @@ init_db()
 def emit_leaderboard():
     conn = get_conn()
     rows = conn.execute(
-        "SELECT name, score FROM leaderboard ORDER BY score"
+        "SELECT name, score, time FROM leaderboard ORDER BY score"
     ).fetchall()
     conn.close()
     socketIO.emit("leaderboard_update", [dict(row) for row in rows])
@@ -44,11 +45,12 @@ def emit_leaderboard():
 def add():
     if request.is_json==True: 
         data = request.get_json()
+        current = time.asctime()
         if not data or "name" not in data or "score" not in data: return {"error": "Bad request"}, 400
          
         conn = get_conn()
-        conn.execute("INSERT OR REPLACE INTO leaderboard (name, score) VALUES (?, ?)",
-                     (data["name"], data["score"]))
+        conn.execute("INSERT OR REPLACE INTO leaderboard (name, score, time) VALUES (?, ?, ?)",
+                     (data["name"], data["score"], current))
         conn.commit()
         conn.close()
         emit_leaderboard()
@@ -59,7 +61,7 @@ def add():
 def get_leaderboard():
     conn = get_conn()
     rows = conn.execute(
-        "SELECT name, score FROM leaderboard ORDER BY score DESC LIMIT 10"
+        "SELECT name, score, time FROM leaderboard ORDER BY score DESC LIMIT 10"
     ).fetchall()
     conn.close()
     return jsonify([dict(row) for row in rows])
@@ -75,6 +77,7 @@ def deleteEntry():
         conn.execute("DELETE FROM leaderboard WHERE name = ?", (rq["name"],))
         conn.commit()
         conn.close()
+        emit_leaderboard()
         return {"success": "entry removed"}, 200
     
 @app.get("/info")
@@ -120,7 +123,7 @@ def performance():
     return jsonify(averages)
 
 
-app.run()
+socketIO.run(app)
 
 
    
