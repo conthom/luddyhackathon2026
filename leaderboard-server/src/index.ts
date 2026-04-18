@@ -136,6 +136,14 @@ app.post("/add", (req, res) => {
   res.status(201).json(entry);
 });
 
+/** Clears active leaderboard rows (submission_log unchanged). Used by local race simulators. */
+app.delete("/reset", (_req, res) => {
+  replaceEntireActiveLeaderboard([]);
+  const remaining = countActiveEntries();
+  logApi("DELETE /reset", { remaining });
+  res.json({ ok: true, remaining });
+});
+
 app.post("/remove", (req, res) => {
   const id = typeof req.body?.id === "string" ? req.body.id : "";
   const rawUser = typeof req.body?.user === "string" ? req.body.user.trim() : "";
