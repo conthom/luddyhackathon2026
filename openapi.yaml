@@ -4,11 +4,87 @@ info:
   version: 1.0.0
   description: REST API for dynamic leaderboard (Luddy Hacks specification).
 servers:
-  - url: http://localhost:3001
+  - url: http://localhost:5000
     description: Local development
+
+components:
+  schemas:
+    LeaderboardEntry:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Team Rocket"
+        score:
+          type: number
+          example: 42.5
+        time:
+          type: number
+          description: Unix timestamp of when the entry was recorded
+          example: 1713456789.123
+
+    RankedEntry:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Team Rocket"
+        score:
+          type: number
+          example: 42.5
+        time:
+          type: number
+          description: Unix timestamp of when the entry was recorded
+          example: 1713456789.123
+
+    PredictionEntry:
+      type: object
+      properties:
+        team:
+          type: string
+          example: "Team Rocket"
+        avg_lap_time:
+          type: number
+          example: 38.452
+        trend:
+          type: number
+          description: Difference between recent average and overall average. Negative = improving.
+          example: -1.234
+        predicted_score:
+          type: number
+          example: 37.835
+        laps_recorded:
+          type: integer
+          example: 5
+        laps_by_time_recorded:
+          type: array
+          description: All lap scores in chronological order
+          items:
+            type: number
+          example: [40.1, 39.5, 38.2, 37.9, 37.6]
+        predicted_winner:
+          type: boolean
+          description: Only present (and true) on the entry predicted to win
+          example: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Bad request"
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: string
+          example: "entry added"
+
 paths:
   /add:
     post:
+      operationId: addEntry
       summary: Add an entry to the leaderboard
       requestBody:
         required: true
@@ -16,243 +92,177 @@ paths:
           application/json:
             schema:
               type: object
-              required: [user, score]
+              required: [name, score]
               properties:
-                user:
+                name:
                   type: string
+                  example: "Team Rocket"
                 score:
                   type: number
+                  example: 42.5
       responses:
         "201":
-          description: Created
+          description: Entry successfully added
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/LeaderboardEntry"
+                $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Bad request
+          description: Missing or invalid fields, or non-JSON request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /remove:
-    post:
-      summary: Remove leaderboard entries by id or user
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                id:
-                  type: string
-                  format: uuid
-                user:
-                  type: string
-      responses:
-        "200":
-          description: Removal summary
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  removed:
-                    type: integer
-                  remaining:
-                    type: integer
-  /leaderboard:
-    get:
-      summary: Top 10 leaderboard (JSON or HTML table)
-      parameters:
-        - name: format
-          in: query
-          schema:
-            type: string
-            enum: [html, json]
-      responses:
-        "200":
-          description: Top 10 positions
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  top:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/RankedEntry"
-            text/html:
-              schema:
-                type: string
-  /race/state:
-    get:
-      summary: Current race timeline and heat (persisted)
-      responses:
-        "200":
-          description: Elapsed race time and active heat
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [elapsedMs, heat]
-                properties:
-                  elapsedMs:
-                    type: number
-                    description: Milliseconds from race start (0 … 2h15m)
-                  heat:
-                    type: string
-                    enum: [men, women, all]
-    post:
-      summary: Update race time and heat; refreshes Little 500 miles on the leaderboard
+    delete:
+      operationId: removeEntry
+      summary: Remove all leaderboard entries for a given name
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [elapsedMs, heat]
+              required: [name]
               properties:
-                elapsedMs:
-                  type: number
-                heat:
+                name:
                   type: string
-                  enum: [men, women, all]
+                  example: "Team Rocket"
       responses:
         "200":
-          description: Saved state
+          description: Entry successfully removed
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  elapsedMs:
-                    type: number
-                  heat:
-                    type: string
+                $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Bad request
-  /race/reset:
-    post:
-      summary: Reload workbook, flag clock, replace entire active leaderboard with sheet snapshot (drops guest rows)
-      responses:
-        "200":
-          description: New race state after reset
+          description: Missing name field
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  elapsedMs:
-                    type: number
-                  heat:
-                    type: string
-                    enum: [men, women, all]
-        "503":
-          description: Workbook missing or unreadable
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /leaderboard:
+    get:
+      operationId: getLeaderboard
+      summary: Top 10 leaderboard entries (one per name, highest score only)
+      description: >
+        Returns the top 10 entries ordered by score descending.
+        Only the most recently added score per unique name is considered.
+      responses:
+        "200":
+          description: Array of up to 10 leaderboard entries
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 10
+                items:
+                  $ref: "#/components/schemas/RankedEntry"
+
   /info:
     get:
+      operationId: getInfo
       summary: Aggregate statistics for all scores
+      description: >
+        Computes descriptive statistics across all recorded scores
+        (not deduplicated — every entry counts).
       responses:
         "200":
           description: Statistics payload
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/InfoResponse"
+                type: object
+                properties:
+                  mean:
+                    type: number
+                    example: 38.6
+                  median:
+                    type: number
+                    example: 38.0
+                  quartiles:
+                    type: array
+                    description: "[Q1, Q2 (median), Q3, Q4 (max)] as floats"
+                    items:
+                      type: number
+                    minItems: 4
+                    maxItems: 4
+                    example: [35.1, 38.0, 41.2, 50.0]
+                  iqr:
+                    type: number
+                    description: Interquartile range (Q3 - Q1)
+                    example: 6.1
+                  skew:
+                    type: number
+                    description: Fisher-Pearson skewness coefficient
+                    example: 0.32
+                  standardDeviation:
+                    type: number
+                    description: Sample standard deviation (0.0 if only one entry)
+                    example: 4.87
+        "400":
+          description: No entries in the leaderboard yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /performance:
     get:
-      summary: Average observed endpoint execution time
+      operationId: getPerformance
+      summary: Average observed execution time per endpoint
+      description: >
+        Returns a map of endpoint function name to average response time in seconds,
+        computed from all requests observed since the server started.
       responses:
         "200":
-          description: Timing summary
+          description: Per-endpoint average execution times in seconds
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  averageExecutionTimeMs:
-                    type: number
-                  sampleCount:
-                    type: integer
-                  unit:
-                    type: string
-                    example: milliseconds
-  /history:
+                additionalProperties:
+                  type: number
+                example:
+                  add: 0.00312
+                  get_leaderboard: 0.00187
+                  info: 0.00421
+
+  /reset:
+    delete:
+      operationId: resetLeaderboard
+      summary: Clear all leaderboard entries
+      responses:
+        "200":
+          description: Leaderboard cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /predictions:
     get:
-      summary: Submission log with optional filters
-      parameters:
-        - name: user
-          in: query
-          schema:
-            type: string
-        - name: from
-          in: query
-          description: ISO date lower bound
-          schema:
-            type: string
-            format: date-time
-        - name: to
-          in: query
-          description: ISO date upper bound
-          schema:
-            type: string
-            format: date-time
+      operationId: getPredictions
+      summary: Predict final standings based on lap history and fatigue trend
+      description: >
+        For each team, computes average lap time, a recency trend (average of last 3 laps
+        minus overall average), and a predicted score (avg + 0.5 * trend).
+        Results are sorted ascending by predicted score (lowest = fastest = winner).
+        The predicted winner entry includes a `predicted_winner: true` field.
       responses:
         "200":
-          description: Filtered history
+          description: Predicted standings sorted by predicted score ascending
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  entries:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/LeaderboardEntry"
-components:
-  schemas:
-    LeaderboardEntry:
-      type: object
-      properties:
-        id:
-          type: string
-        user:
-          type: string
-        score:
-          type: number
-        submittedAt:
-          type: string
-          format: date-time
-    RankedEntry:
-      allOf:
-        - $ref: "#/components/schemas/LeaderboardEntry"
-        - type: object
-          properties:
-            rank:
-              type: integer
-    InfoResponse:
-      type: object
-      properties:
-        count:
-          type: integer
-        mean:
-          type: number
-          nullable: true
-        median:
-          type: number
-          nullable: true
-        quartiles:
-          type: object
-          properties:
-            q1: { type: number, nullable: true }
-            q2: { type: number, nullable: true }
-            q3: { type: number, nullable: true }
-        min: { type: number, nullable: true }
-        max: { type: number, nullable: true }
-        standardDeviation: { type: number, nullable: true }
-        percentiles:
-          type: object
-        percentileRanksByUser:
-          type: object
-          additionalProperties:
-            type: number
-        scoreDistribution:
-          type: object
-          nullable: true
+                type: array
+                items:
+                  $ref: "#/components/schemas/PredictionEntry"
+        "400":
+          description: No entries in the leaderboard yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
