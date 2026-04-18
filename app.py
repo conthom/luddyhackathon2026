@@ -4,12 +4,16 @@ from scipy import stats
 import numpy as np
 import time
 from collections import defaultdict
+import sqlite3
 
 
 app = Flask(__name__)
 CORS(app)
 
-leaderboard = []
+
+def get_conn():
+    conn = sqlite3.connect("leaderboard.db")
+    conn.row
 
 
 @app.post("/add")
@@ -32,16 +36,27 @@ def deleteEntry():
     rq = Request.get_json()
     if not rq or "name" not in rq: return {"error": "bad request"}, 400
     else: 
-        leaderboard.remove({"name": leaderboard["name"], "score": leaderboard["score"]})
+        entry = next((e for e in leaderboard if e["name"] == rq["name"]), None)
+        if not entry:
+            return {"error": "entry not found"}, 404
+        leaderboard.remove(entry)
         return {"success": "entry removed"}, 201
     
 @app.get("/info")
 def info():
-    meanValue = stats.mean(leaderboard)
-    median = stats.median(leaderboard)
-    q4, q3, q2, q1 = np.quantile(leaderboard, [1, 0.75, .5, 0.25])
+    if not leaderboard:
+        return {"error": "no entries yet"}, 400
+    scores = [i["score"] for i in leaderboard]
+    meanValue = stats.mean(scores)
+    median = stats.median(scores)
+    q4, q3, q2, q1 = np.quantile(scores, [1, 0.75, .5, 0.25])
     iqr = q3 - q1
-    return jsonify(meanValue, median, q4, q3, q2, q1, iqr)
+    return jsonify({
+        "means": meanValue,
+        "median":median,
+        "quartiles":(q4, q3, q2, q1),
+        "iqr": iqr
+        })
 
 endpoint_times = defaultdict(list)
 
@@ -62,4 +77,7 @@ def performance():
         for endpoint, times in endpoint_times.items()
     }
     return jsonify(averages)
+
+
+
    
