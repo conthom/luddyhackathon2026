@@ -6,11 +6,12 @@ import time
 from collections import defaultdict
 import sqlite3
 import statistics
+from flask_socketio import SocketIO
 
 
 app = Flask(__name__)
 CORS(app)
-
+socketIO = SocketIO(app, cors_allowed_origin="*") # Might want to update allowed CORS origins list to enhance security
 
 def get_conn():
     conn = sqlite3.connect("leaderboard.db")
@@ -31,6 +32,14 @@ def init_db():
 
 init_db()
 
+def emit_leaderboard():
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT name, score FROM leaderboard ORDER BY score"
+    ).fetchall()
+    conn.close()
+    socketIO.emit("leaderboard_update", [dict(row) for row in rows])
+
 @app.post("/add")
 def add():
     if request.is_json==True: 
@@ -42,6 +51,7 @@ def add():
                      (data["name"], data["score"]))
         conn.commit()
         conn.close()
+        emit_leaderboard()
         return {"success": "entry added"}, 201
     else: return {"error": "Bad request"}, 400
 
