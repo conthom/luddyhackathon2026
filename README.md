@@ -1,105 +1,211 @@
-# Little 500 Leaderboard Simulation
+# 🏆 Luddy Hackathon — Leaderboard API
 
-Dynamic leaderboard for the IU Little 500: load real 2025 team data from a spreadsheet, simulate **miles at any race time**, and persist scores and race clock with **Express** and **SQLite**.
+A real-time leaderboard backend built with Flask and SQLite, featuring live WebSocket updates, descriptive statistics, and predictive standings based on lap history. A Vite frontend displays the live leaderboard.
 
-## Prerequisites
+---
 
-- **Node.js 20+** (22 recommended; matches the Docker image)
-- **npm** (workspaces are used at the repo root)
+## Stack
 
-## Quick start (local development)
+| Layer | Tech |
+|---|---|
+| Backend | Python · Flask · Flask-SocketIO · SQLite |
+| Frontend | Vite |
+| Stats | NumPy · SciPy |
 
-From the **repository root**:
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.8+
+- Node.js 18+ (for the frontend)
+
+### 1. Clone the repo
 
 ```bash
+git clone <your-repo-url>
+cd <repo-folder>
+```
+
+### 2. Install backend dependencies
+
+```bash
+pip install flask flask-cors flask-socketio scipy numpy
+```
+
+### 3. Start the backend
+
+```bash
+# macOS / Linux
+python3 app.py
+
+# Windows
+python app.py
+```
+
+The API will be available at `http://localhost:5000`. A `leaderboard.db` SQLite file will be created automatically on first run.
+
+### 4. Start the frontend
+
+```bash
+cd frontend   # or wherever your Vite project lives
 npm install
 npm run dev
 ```
 
-This runs two processes:
+The frontend will be available at `http://localhost:5173` (Vite default) and connects to the backend via WebSocket to display live leaderboard updates.
 
-| Process | URL | Role |
-|--------|-----|------|
-| **Vite** (React client) | [http://localhost:5173](http://localhost:5173) | UI; proxies API routes to the server |
-| **Express** (API) | [http://localhost:3001](http://localhost:3001) | REST API + SQLite |
+---
 
-Open **http://localhost:5173** in a browser. The Vite dev server proxies `/leaderboard`, `/race`, `/add`, `/remove`, `/info`, `/performance`, and `/history` to port **3001**, so you do not need to set `VITE_API_BASE_URL` for local dev.
+## API Reference
 
-### Run API or client only
+### `POST /add`
+Add a new entry to the leaderboard.
 
-```bash
-npm run dev:server   # API only (port 3001)
-npm run dev:client   # Vite only (port 5173; API must be up for full behavior)
+**Request body:**
+```json
+{ "name": "Team Rocket", "score": 42.5 }
 ```
 
-### Production-style build
+**Responses:**
+- `201` — Entry added successfully
+- `400` — Missing/invalid fields or non-JSON body
 
-```bash
-npm run build        # builds server (TypeScript) + client (Vite)
-npm run start        # runs compiled API from leaderboard-server (set CLIENT_DIST to serve the SPA)
+---
+
+### `DELETE /remove`
+Remove all entries for a given team name.
+
+**Request body:**
+```json
+{ "name": "Team Rocket" }
 ```
 
-## Project layout
+**Responses:**
+- `200` — Entry removed
+- `400` — Missing `name` field
 
-```
-luddyhackathon2026/          # npm workspaces root
-├── leaderboard-client/      # React + Vite (src/, public/)
-├── leaderboard-server/      # Express + better-sqlite3 (src/)
-├── simulate_race.py         # optional offline race exploration (Python)
-└── Dockerfile               # single container: API + static client
-```
+---
 
-## How it works (short)
+### `GET /leaderboard`
+Returns the top 10 entries, one per unique name (highest score only), sorted descending.
 
-- **Race state** (`elapsedMs`, heat) is stored in SQLite (`race_state`). **`POST /race/state`** updates it and **re-syncs** synthetic Little 500 rows so miles match the clock.
-- **Leaderboard** rows live in `leaderboard_entries`; **`POST /add`** also appends to `submission_log` for the activity history.
-- Team data comes from **`little-500-race.xlsx`**. The server resolves it via `LITTLE500_XLSX_PATH`, or looks under `leaderboard-server/data/` and `leaderboard-client/public/` (see `loadLittle5002025.ts`).
-
-## Environment variables
-
-### Server (`leaderboard-server`)
-
-| Variable | Default / behavior |
-|----------|---------------------|
-| `PORT` | `3001` |
-| `SQLITE_PATH` | `leaderboard-server/data/leaderboard.db` (path is created if needed) |
-| `LITTLE500_XLSX_PATH` | Optional absolute or cwd-relative path to the workbook |
-| `CLIENT_DIST` | If set, Express serves the built Vite app from this directory and falls back to `index.html` for client routes |
-
-### Client (build / deploy)
-
-| Variable | Purpose |
-|----------|---------|
-| `VITE_API_BASE_URL` | Base URL for the API when the client is **not** served from the same origin (e.g. `https://your-api.onrender.com`). Omit for same-origin or dev proxy. |
-
-## HTTP API (overview)
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/race/state` | Current `elapsedMs` and `heat` |
-| `POST` | `/race/state` | Body: `{ "elapsedMs": number, "heat": "men" \| "women" \| "all" }` — updates DB and Little 500 snapshot |
-| `POST` | `/race/reset` | Reload workbook, set clock to end of race, replace **entire** active leaderboard with sheet snapshot |
-| `GET` | `/leaderboard` | Top 10 JSON; `?format=html` for a simple HTML table |
-| `POST` | `/add` | Body: `{ "user": string, "score": number }` |
-| `POST` | `/remove` | Body: `{ "id": string }` or `{ "user": string }` — active rows only |
-| `GET` | `/info` | Aggregate stats over current leaderboard |
-| `GET` | `/performance` | Rolling average request time (middleware timing) |
-| `GET` | `/history` | Query: `user`, `from`, `to` (ISO) — reads submission log |
-
-## Docker
-
-Build and run (API on **3001**, SQLite persisted under `/data` in the container):
-
-```bash
-docker build -t leaderboard-app .
-docker run --rm -p 3001:3001 -v little500-data:/data leaderboard-app
+**Response:**
+```json
+[
+  { "name": "Team Rocket", "score": 42.5, "time": 1713456789.123 },
+  ...
+]
 ```
 
-The image sets `CLIENT_DIST` so **one** port serves both the API and the static client. Open **http://localhost:3001**.
+---
 
-## Tech stack
+### `GET /info`
+Aggregate statistics across all recorded scores.
 
-- **Frontend:** React 19, React Router, Vite, Framer Motion  
-- **Backend:** Express, **better-sqlite3** (SQLite in-process), CORS  
-- **Data:** XLSX workbook for 2025 teams  
+**Response:**
+```json
+{
+  "mean": 38.6,
+  "median": 38.0,
+  "quartiles": [35.1, 38.0, 41.2, 50.0],
+  "iqr": 6.1,
+  "skew": 0.32,
+  "standardDeviation": 4.87
+}
+```
 
+- `400` if no entries exist yet
+
+---
+
+### `GET /performance`
+Average observed server-side execution time per endpoint (in seconds), since the server started.
+
+**Response:**
+```json
+{
+  "add": 0.00312,
+  "get_leaderboard": 0.00187
+}
+```
+
+---
+
+### `DELETE /reset`
+Clears all leaderboard entries.
+
+**Response:**
+```json
+{ "success": "leaderboard cleared" }
+```
+
+---
+
+### `GET /predictions`
+Predicts final standings based on each team's lap history and a recency trend.
+
+- **Trend** = average of last 3 laps − overall average (negative = improving)
+- **Predicted score** = `avg + 0.5 × trend`
+- Results sorted ascending (lowest predicted score = winner)
+- The predicted winner has `"predicted_winner": true`
+
+**Response:**
+```json
+[
+  {
+    "team": "Team Rocket",
+    "avg_lap_time": 38.452,
+    "trend": -1.234,
+    "predicted_score": 37.835,
+    "laps_recorded": 5,
+    "laps_by_time_recorded": [40.1, 39.5, 38.2, 37.9, 37.6],
+    "predicted_winner": true
+  }
+]
+```
+
+- `400` if no entries exist yet
+
+---
+
+## WebSocket Events
+
+The backend emits real-time updates via [Flask-SocketIO](https://flask-socketio.readthedocs.io/).
+
+| Event | Trigger | Payload |
+|---|---|---|
+| `leaderboard_update` | Entry added or removed | Full leaderboard array (all entries, not just top 10) |
+
+Connect from the frontend:
+```js
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000");
+socket.on("leaderboard_update", (data) => {
+  console.log(data); // array of { name, score, time }
+});
+```
+
+---
+
+## Project Structure
+
+```
+.
+├── app.py              # Flask application entry point
+├── leaderboard.db      # SQLite database (auto-created)
+└── frontend/           # Vite frontend
+    ├── src/
+    └── package.json
+```
+
+---
+
+## Notes
+
+- The database file `leaderboard.db` is created automatically on first run — no migrations needed.
+- `/reset` is a hard delete with no confirmation. Use carefully during judging.
+- Performance timings reset when the server restarts (stored in memory).
+- CORS is open (`*`) for development. Restrict `cors_allowed_origins` in `app.py` before any production deployment.
