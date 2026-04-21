@@ -9,9 +9,13 @@ import statistics
 from flask_socketio import SocketIO
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='')
 CORS(app)
 socketIO = SocketIO(app, cors_allowed_origins="*", async_mode = "threading") # Might want to update allowed CORS origins list to enhance security
+
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
 
 # def get_conn():
 #     if 'db' not in g:

@@ -8,18 +8,28 @@ terminal display as the race progresses.
 Usage:
     python simulate_race.py
     python simulate_race.py --teams 8 --delay 0.3 --laps 200
+<<<<<<< HEAD
     (Start leaderboard-server first; API defaults to http://127.0.0.1:3001)
 """
 
 import argparse
 import os
+=======
+"""
+
+import argparse
+>>>>>>> 6ddddb0 (final touches)
 import random
 import time
 import requests
 from dataclasses import dataclass, field
 
+<<<<<<< HEAD
 # Match leaderboard-server default (PORT=3001). Override with env or --base-url.
 DEFAULT_BASE_URL = os.environ.get("LEADERBOARD_BASE_URL", "http://127.0.0.1:3001").rstrip("/")
+=======
+BASE_URL = "http://127.0.0.1:5000"
+>>>>>>> 6ddddb0 (final touches)
 
 # ── ANSI colours ─────────────────────────────────────────────────────────────
 RESET  = "\033[0m"
@@ -68,17 +78,26 @@ class Team:
         return round(lap_time, 3)
 
 
+<<<<<<< HEAD
 def post_lap(session: requests.Session, base_url: str, name: str, lap_time: float):
     try:
         session.post(
             f"{base_url}/add",
             json={"user": name, "score": lap_time},
+=======
+def post_lap(session: requests.Session, name: str, lap_time: float):
+    try:
+        session.post(
+            f"{BASE_URL}/add",
+            json={"name": name, "score": lap_time},
+>>>>>>> 6ddddb0 (final touches)
             timeout=3,
         )
     except requests.RequestException as e:
         print(f"  {YELLOW}⚠  API error posting {name}: {e}{RESET}")
 
 
+<<<<<<< HEAD
 def fetch_leaderboard(session: requests.Session, base_url: str) -> list:
     try:
         resp = session.get(f"{base_url}/leaderboard", timeout=3)
@@ -88,6 +107,12 @@ def fetch_leaderboard(session: requests.Session, base_url: str) -> list:
         if isinstance(data, dict) and "top" in data:
             return data["top"]
         return data if isinstance(data, list) else []
+=======
+def fetch_leaderboard(session: requests.Session) -> list:
+    try:
+        resp = session.get(f"{BASE_URL}/leaderboard", timeout=3)
+        return resp.json() if resp.status_code == 200 else []
+>>>>>>> 6ddddb0 (final touches)
     except requests.RequestException:
         return []
 
@@ -120,8 +145,12 @@ def render(teams: list, lap_times: dict, lap: int, total_laps: int,
         for i, entry in enumerate(board):
             colour = GREEN if i == 0 else WHITE
             rank   = f"{i+1}."
+<<<<<<< HEAD
             label = entry.get("user") or entry.get("name", "")
             print(f"    {colour}{rank:<3} {label:<22}{RESET} {float(entry['score']):.3f}s")
+=======
+            print(f"    {colour}{rank:<3} {entry['name']:<22}{RESET} {float(entry['score']):.3f}s")
+>>>>>>> 6ddddb0 (final touches)
     else:
         print(f"    {YELLOW}(no data yet){RESET}")
 
@@ -136,11 +165,16 @@ def render(teams: list, lap_times: dict, lap: int, total_laps: int,
     print(f"\n{BOLD}{CYAN}{'═' * 58}{RESET}")
 
 
+<<<<<<< HEAD
 def simulate(team_names: list, total_laps: int, delay: float, base_url: str):
+=======
+def simulate(team_names: list, total_laps: int, delay: float):
+>>>>>>> 6ddddb0 (final touches)
     teams = [Team(name=n) for n in team_names]
 
     print(f"{CYAN}{BOLD}Resetting leaderboard...{RESET}")
     with requests.Session() as session:
+<<<<<<< HEAD
         try:
             r = session.delete(f"{base_url}/reset", timeout=5)
             r.raise_for_status()
@@ -152,6 +186,9 @@ def simulate(team_names: list, total_laps: int, delay: float, base_url: str):
                 f"  Or point the sim elsewhere: set LEADERBOARD_BASE_URL or pass --base-url.",
             )
             raise SystemExit(1) from e
+=======
+        session.delete(f"{BASE_URL}/reset")
+>>>>>>> 6ddddb0 (final touches)
         time.sleep(0.5)
 
         start = time.time()
@@ -163,9 +200,15 @@ def simulate(team_names: list, total_laps: int, delay: float, base_url: str):
             for team in teams:
                 t = team.ride_lap()
                 lap_times[team.name] = t
+<<<<<<< HEAD
                 post_lap(session, base_url, team.name, t)
 
             board   = fetch_leaderboard(session, base_url)
+=======
+                post_lap(session, team.name, t)
+
+            board   = fetch_leaderboard(session)
+>>>>>>> 6ddddb0 (final touches)
             elapsed = time.time() - start
             render(teams, lap_times, lap, total_laps, elapsed, board)
 
@@ -189,6 +232,7 @@ if __name__ == "__main__":
     parser.add_argument("--laps",  type=int,   default=200,  help="Number of laps (default: 200)")
     parser.add_argument("--delay", type=float, default=0.5,  help="Seconds between laps (default: 0.5)")
     parser.add_argument("--teams", type=str,   nargs="+",    help="Override team names")
+<<<<<<< HEAD
     parser.add_argument(
         "--base-url",
         type=str,
@@ -200,3 +244,9 @@ if __name__ == "__main__":
     team_names = args.teams if args.teams else DEFAULT_TEAMS
     base_url = (args.base_url or DEFAULT_BASE_URL).rstrip("/")
     simulate(team_names, args.laps, args.delay, base_url)
+=======
+    args = parser.parse_args()
+
+    team_names = args.teams if args.teams else DEFAULT_TEAMS
+    simulate(team_names, args.laps, args.delay)
+>>>>>>> 6ddddb0 (final touches)
